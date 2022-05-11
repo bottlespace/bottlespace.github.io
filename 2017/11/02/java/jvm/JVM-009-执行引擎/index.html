@@ -1,0 +1,358 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-009-执行引擎 | Bottle Space</title><meta name="keywords" content="虚拟机栈"><meta name="author" content="Bottle"><meta name="copyright" content="Bottle"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="JVM-009-执行引擎">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-009-执行引擎">
+<meta property="og:url" content="https://bottlespace.github.io/2017/11/02/java/jvm/JVM-009-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/index.html">
+<meta property="og:site_name" content="Bottle Space">
+<meta property="og:description" content="JVM-009-执行引擎">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png">
+<meta property="article:published_time" content="2017-11-02T13:31:58.000Z">
+<meta property="article:modified_time" content="2022-05-11T13:35:07.943Z">
+<meta property="article:author" content="Bottle">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png"><link rel="shortcut icon" href="/bottlespace.github.io/img/favicon.png"><link rel="canonical" href="https://bottlespace.github.io/2017/11/02/java/jvm/JVM-009-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/bottlespace.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/bottlespace.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JVM-009-执行引擎',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-05-11 21:35:07'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/bottlespace.github.io/img/favicon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/bottlespace.github.io/archives/"><div class="headline">文章</div><div class="length-num">31</div></a></div><div class="data-item"><a href="/bottlespace.github.io/tags/"><div class="headline">标签</div><div class="length-num">13</div></a></div><div class="data-item"><a href="/bottlespace.github.io/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/bottlespace.github.io/">Bottle Space</a></span><div id="menus"><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM-009-执行引擎</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2017-11-02T13:31:58.000Z" title="发表于 2017-11-02 21:31:58">2017-11-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-05-11T13:35:07.943Z" title="更新于 2022-05-11 21:35:07">2022-05-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/bottlespace.github.io/categories/JVM/">JVM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM-009-执行引擎"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598173494947.png" alt="1598173494947"></p>
+<h4 id="执行引擎概述"><a href="#执行引擎概述" class="headerlink" title="执行引擎概述"></a>执行引擎概述</h4><ul>
+<li>执行引擎是Java虚拟机核心组件之一</li>
+<li>“虚拟机”是一个相对于“物理机”的概念，这两种机器都有代码执行的能力，其区别就是物理机的执行引擎是建立在处理器、缓存、指令集和操作系统层面上的，而<strong>虚拟机的执行引擎则是由软件自行实现的</strong>，因此可以不受物理条件的制约指令集和执行引擎的结构体系，<strong>能够执行哪些不被硬件直接支持的指令集格式</strong>。</li>
+<li>JVM的主要任务是负责 <strong>装载字节码到其内部</strong>，但是字节码并不能够直接运行在操作系统之上，因为字节码指令并非等价于本地机器指令，它内部包含的仅仅只是一些能够被JVM所识别的字节码指令、符号表、以及其他辅助信息</li>
+<li>那么如果想要一个Java程序运行起来，执行引擎（Execution Engine）的任务就是 <strong>将字节码指令解释&#x2F;编译为对应平台的本地机器指令才可以</strong>，简单来说JVM的执行引擎充当了高级语言翻译为机器语言的译者</li>
+</ul>
+<h4 id="执行引擎的工作流程"><a href="#执行引擎的工作流程" class="headerlink" title="执行引擎的工作流程"></a>执行引擎的工作流程</h4><p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598175437814.png" alt="1598175437814"></p>
+<ul>
+<li>执行引擎在执行的过程中究竟需要执行什么样的字节码指令完全依赖于PC寄存器</li>
+<li>每当执行完一项指令操作之后，PC寄存器就会更新下一条需要被执行的指令的地址</li>
+<li>当然方法在执行的过程中，执行引擎可能会通过存储在局部变量表中的对象引用准确定位到存储在Java堆区中的对象的实例信息，以及通过对象头中的元数据指针定位到目标对象的类型信息</li>
+<li>从外观上来看，所有的Java虚拟机的执行引擎的输入、输出都是一致的：输入的是字节码二进制流，处理过程是字节码解析执行的等效流程，输出的是执行结果</li>
+</ul>
+<h4 id="Java代码编译和执行的过程"><a href="#Java代码编译和执行的过程" class="headerlink" title="Java代码编译和执行的过程"></a>Java代码编译和执行的过程</h4><p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598175885286.png" alt="1598175885286"></p>
+<ul>
+<li>大部分的程序代码转换成物理机的目标代码或者虚拟机能执行的指令集之前，都需要经过上图的各个步骤。</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598176055347.png" alt="1598176055347"></p>
+<ul>
+<li>问题：什么是解释器（Interpreter），什么是JIT编译器<ul>
+<li>解释器：当Java虚拟机启动的时候会根据预定义的规范 <strong>对字节码采用逐行解释的方式执行</strong>，将每条字节码文件中的内容“翻译”为对应平台的本地机器指令执行</li>
+<li>JIT（Just In Time Compiler）编译器：就是虚拟机将源代码直接编译成和本地机器平台相关的机器语言</li>
+</ul>
+</li>
+<li>问题：为什么说Java是半编译半解释型语言<ul>
+<li>JDK1.0时代，将Java语言定义为“解释执行”还是比较准确的，再后来Java也发展出可以直接生成本地代码的编译器</li>
+<li>现在JVM在执行Java源码的时候，通常都会将解释执行和编译执行二者结合起来进行。</li>
+</ul>
+</li>
+</ul>
+<h4 id="机器码指令、汇编、高级语言的理解与执行过程"><a href="#机器码指令、汇编、高级语言的理解与执行过程" class="headerlink" title="机器码指令、汇编、高级语言的理解与执行过程"></a>机器码指令、汇编、高级语言的理解与执行过程</h4><p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598176998909-20220511213452147.png" alt="1598176998909"></p>
+<h5 id="机器码"><a href="#机器码" class="headerlink" title="机器码"></a>机器码</h5><ul>
+<li>各种用二进制编码的方式表示的指令，叫做<strong>机器指令码</strong>。开始，人们就用它编写程序，这就是机器语言</li>
+<li>机器语言虽然能够被计算机理解和接受，但是和人们的语言差别太大，不容易被人们理解和记忆，并且用它编程容易出差错</li>
+<li>用它编写的程序一经输入到计算机，CPU直接读取执行，因此和其他语言编写的程序相比，执行速度最快</li>
+<li>机器指令与CPU紧密相关，所以不同种类的CPU所对应的机器指令也就不同</li>
+</ul>
+<h5 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h5><ul>
+<li>由于机器码是由0和1组成的二进制序列，可读性实在太差，于是人们发明了指令</li>
+<li>指令就是把机器码中特定的0和1序列，简化成相应的指令（一般使用英文简写，如mov，inc等），可读性稍好</li>
+<li>由于不同的硬件平台，执行同一个操作，对应的机器码可能不同，所以不同的硬件平台的同一种指令（如mov）对应的机器码也不同</li>
+</ul>
+<h5 id="指令集"><a href="#指令集" class="headerlink" title="指令集"></a>指令集</h5><ul>
+<li>不同的硬件平台，各自支持的指令，是有差别的。因此每个平台所支持的指令，称之为对应平台的指令集</li>
+<li>常见的<ul>
+<li>x86指令集，对应的是x86架构的平台</li>
+<li>ARM指令集，对应的是ARM架构的平台</li>
+</ul>
+</li>
+</ul>
+<h5 id="汇编语言"><a href="#汇编语言" class="headerlink" title="汇编语言"></a>汇编语言</h5><ul>
+<li>由于机器指令的可读性还是太差，于是人们有发明了汇编语言</li>
+<li>在汇编语言中，用<strong>助记符（Mnemonics）**代替**机器指令的操作码**，用</strong>地址符号（Symbol）或者标号（Label）*<em>代替*<em>指令操作数的地址</em></em></li>
+<li>在不同的硬件平台，汇编语言对应着不同的机器语言指令集，通过汇编过程转称机器指令<ul>
+<li>由于计算机只认识指令码，所以用<strong>汇编语言编写的程序还必须翻译成机器指令码</strong>。计算机才能识别和执行</li>
+</ul>
+</li>
+</ul>
+<h5 id="高级语言"><a href="#高级语言" class="headerlink" title="高级语言"></a>高级语言</h5><ul>
+<li>为了使得计算机用户编程序更容易一些，后来就出现了各种高级计算机语言，高级语言比机器语言、汇编语言<strong>更接近人的语言</strong></li>
+<li>当计算机执行高级语言编写程序的时候，<strong>仍然需要将程序解释和编译成机器的指令码</strong>。完成这个过程的程序就叫做解释程序或者编译程序</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598178096241.png" alt="1598178096241"></p>
+<h5 id="字节码"><a href="#字节码" class="headerlink" title="字节码"></a>字节码</h5><ul>
+<li>字节码是一种中间状态（中间码）的二进制代码（文件），它比机器码更抽象，需要直译器转译之后才能成为机器码</li>
+<li>字节码主要是为了实现特定软件运行和软件环境、<strong>与硬件环境无关</strong></li>
+<li>字节码的实现方式是通过编译器和虚拟机器，编译器将源码编译成字节码，特定平台上的虚拟机器将字节码转译为可以执行的命令<ul>
+<li>字节码的典型应用就是 ByteCode</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598178329113-20220511213456409.png" alt="1598178329113"></p>
+<h5 id="C-x2F-C-源程序执行过程"><a href="#C-x2F-C-源程序执行过程" class="headerlink" title="C&#x2F;C++源程序执行过程"></a>C&#x2F;C++源程序执行过程</h5><p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598178388344.png" alt="1598178388344"></p>
+<p><strong>编译过程又可以分为两个阶段：编译和汇编</strong></p>
+<ul>
+<li>编译过程：是读取源程序（字符流），对之进行词法和语法的分析，将高级语言指令转换为功能等效的汇编代码</li>
+<li>汇编过程：实际上指把汇编语言代码翻译成目标机器指令的过程</li>
+</ul>
+<h4 id="解释器"><a href="#解释器" class="headerlink" title="解释器"></a>解释器</h4><p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598178654437.png" alt="1598178654437"></p>
+<ul>
+<li>JVM的设计者们的初衷仅仅只是单纯的<strong>为了满足Java程序的跨平台性</strong>，因此避免采用静态编译的方式直接生成本地机器指令，从而诞生了实现解释器在运行时采用逐行解释字节码执行程序的想法</li>
+</ul>
+<h5 id="解释器工作机制（或工作任务）"><a href="#解释器工作机制（或工作任务）" class="headerlink" title="解释器工作机制（或工作任务）"></a>解释器工作机制（或工作任务）</h5><ul>
+<li>解释器真正意义上所承担的角色就是一个运行时“翻译者”，将字节码文件中的内容“翻译”为对应平台的本地机器指令执行</li>
+<li>当一条字节码指令被解释执行完成之后，接着再根据PC寄存器中记录的下一条需要被执行的字节码指令执行解释操作</li>
+</ul>
+<h5 id="解释器的分类"><a href="#解释器的分类" class="headerlink" title="解释器的分类"></a>解释器的分类</h5><ul>
+<li><p>在Java发展历史里，一共有两套解释执行器，即古老的<strong>字节码解释器</strong>、现在普遍使用的是<strong>模板解释器</strong></p>
+</li>
+<li><p>字节码解释器在执行时通过<strong>纯软件代码</strong>，模板字节码的执行，效率非常地下</p>
+</li>
+<li><p>而模板解释器将</p>
+<p>每一条字节码和一个模板函数相关联</p>
+<p>，模板函数中直接产生这条字节码执行的机器码。从而很大程度上提高了解释器的性能</p>
+<ul>
+<li>在Hotspot VM中，解释器主要由Interpreter模块和Code模块构成<ul>
+<li>Interpreter模块：实现了解释器的核心功能</li>
+<li>Code模块：用于管理Hotspot VM 在运行时生成的本地机器指令</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="现状"><a href="#现状" class="headerlink" title="现状"></a>现状</h5><ul>
+<li>由于解释器在设计上和实现上非常简单，因此除了 Java之外，其他语言也基于解释器执行。但是今天 <strong>基于解释器执行已经沦落为低效的代名词</strong></li>
+<li>为了解决这个问题，JVM平台支持一种即时编译的技术。即时编译的目的是避免函数被解释执行，而是<strong>将整个函数体编译成机器码吗，每次该函数执行的时候，只执行编译后的机器码即可</strong>，这种方式可以使得执行效率大幅度提升</li>
+</ul>
+<h4 id="JIT编译器"><a href="#JIT编译器" class="headerlink" title="JIT编译器"></a>JIT编译器</h4><ul>
+<li>Hotspot虚拟机是目前市面上高性能虚拟机的代表之一。<strong>它是采用解释器和即时编译器并存的架构</strong>，在其运行的时候，会找到解释器和即时编译器相互合作的节点。各自取长补短。</li>
+<li>今天，Java的运行性能已经可以和C&#x2F;C++程序一教高下的地步</li>
+<li>既然Hotspot VM中已经内置了JIT编译器了，那么为啥还需要再使用解释器来“拖累”程序的执行性能呢？比如JRrockit VM 就不包含解释器，字节码全部依靠即时编译后执行 - 所以它号称最快的虚拟机</li>
+<li><strong>首先明确</strong><ul>
+<li>当程序启动的时候，解释器可以马上发挥作用，省去编译的时间，立即执行，编译器想要发挥作用，把代码编译为本地代码，需要一定的时间。但是编译为本地代码后，执行效率高</li>
+<li>所以，JRockit 虚拟机执行性能很高，但是再启动的时候会会花费更多的时间</li>
+<li>所以Hotspot虚拟机，都进行使用，当虚拟机启动的时候，解释器首先发生作用，不必等待即时编译器全部编译完再执行，这样可以省去不必要的编译时间。随着时间的推移，越来越多的热点代码被编译为机器指令代码，所以程序执行会越来越快</li>
+</ul>
+</li>
+<li><strong>概念解释</strong><ul>
+<li>Java语言得“编译期”其实是一段“不确定”得操作过程，因为它可能是指一个<strong>前端编译器</strong>（其实也叫 <strong>编译器的前端</strong>）把 .java 文件转换成 .class 文件的过程</li>
+<li>也可能是指<strong>后端运行编译器</strong>（JIT编译器 Just In Time Compiler） 把字节码转换为机器码的过程</li>
+<li>还可能是使用 <strong>静态提前编译器</strong>（AOT编译器 Ahead Of Time Compiler）直接把 .java 文件编译成本地机器码的过程</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598184444085.png" alt="1598184444085"></p>
+<h4 id="热点代码以及探测方式"><a href="#热点代码以及探测方式" class="headerlink" title="热点代码以及探测方式"></a>热点代码以及探测方式</h4><ul>
+<li>当然是否需要启动JIT编译器将字节码直接编译为对应平台的本地机器指令，则需要根据代码被调用 <strong>执行的频率</strong> 而定。这样的被编译为本地代码的字节码，称为<strong>热点代码</strong>，JIT编译器再运行时会针对哪些被频繁调用的“热点代码”做出<strong>深度优化</strong> 将其直接编译为对应平台的本地机器指令，以提升Java程序的执行性能</li>
+<li><strong>一个被多次调用的方法，或者是一个方法体内部循环次数比较多的循环体都可以称为是热点代码</strong>，因此都可以通过JIT编译器翻译为本地机器指令，由于这种编译方式发生在方法的执行过程中，因此也被称为栈上替换。或者简称为 <strong>OSR（On Stack Replacement）</strong></li>
+<li>一个方法<strong>究竟要调用多少次</strong>，或者一个循环体究竟循环多少次，才会达到这个标准？肯定需要一个明确的阈值，JIT才会编译之为本地代码。这里主要依赖 <strong>热点探测功能</strong></li>
+<li><strong>目前Hotspot VM 采用热点探测方式是基于计数器的热点探测</strong></li>
+<li>采用计数器的热点探测，Hotspot VM 将会为每一个方法都建立2个不同类型的计数器，分别为方法调用计数器，分别为方法调用计数器（Invocation Counter）和回边计数器（Back Edge Counter）<ul>
+<li>方法回调计数器用于传统统计方法的调用次数</li>
+<li>回边计数器则用于统计循环体执行的循环次数</li>
+</ul>
+</li>
+</ul>
+<h5 id="方法调用计数器"><a href="#方法调用计数器" class="headerlink" title="方法调用计数器"></a>方法调用计数器</h5><ul>
+<li>这个计数器就是用于统计方法被调用的次数，它的默认阈值再 Client 模式下是1500次，再Server下是10000次，超过这个阈值，就会触发JIT编译</li>
+<li>这个阈值可以通过虚拟机参数 -XX:ComplieThreshold 来设定</li>
+<li>当一个方法被调用的时候，会先检查该方法是否存在被JIT编译过的版本，如果存在，则优先使用编译后的本地代码来执行，如果不存在已经被编译的版本，则将此方法的调用计数器值加1，然后判断 <strong>方法调用计数器和回边调用计数器之和</strong>是否超过方法调用计数器的阈值，如果超过，就向编译器提交一个该方法的编译请求</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598185980160.png" alt="1598185980160"></p>
+<p><strong>热度衰减</strong></p>
+<ul>
+<li>如何不做任何设置，方法调用计数器统计的不是被调用的绝对次数，而是一个相对的执行频率。即 <strong>一段时间之内方法被调用的次数</strong> 当超过 <strong>一定的时间限制</strong>，如果调用的次数不足，就可以将他转交给即时编译器编译，哪这个方法的调用计数器就会减少一半，这个过程就是调用计数器热度的<strong>衰减（Counter Decay）</strong>，而这段时间就称为次方法统计的<strong>半衰周期（Counter Half Life Time）</strong></li>
+<li>进行热度衰减的动作，是再虚拟机内部垃圾收集的时候顺便执行的，可以使用虚拟机参数 <strong>-XX:-UseCouinterDecay</strong>关闭</li>
+<li>可以使用 <strong>-XX:CounterHalfLifeTime</strong> 参数设置半衰周期的时间，单位是秒</li>
+</ul>
+<h5 id="回边计数器"><a href="#回边计数器" class="headerlink" title="回边计数器"></a>回边计数器</h5><ul>
+<li>统计方法中循环 体代码的执行次数，建立回边计数器统计就是为了触发 OSR 编译</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598186761848-20220511213502501.png" alt="1598186761848"></p>
+<h4 id="Hotspot-VM-可以设置程序的执行方式"><a href="#Hotspot-VM-可以设置程序的执行方式" class="headerlink" title="Hotspot VM 可以设置程序的执行方式"></a>Hotspot VM 可以设置程序的执行方式</h4><ul>
+<li>缺省情况下 Hotspot 虚拟机使用解释器与编译器并存的架构，开发人员也可以对齐进行调整，<strong>设置为完全采用解释器或者完全采用即时编译器</strong></li>
+<li><strong>-Xint</strong>:完全采用解释器模式执行程序</li>
+<li><strong>-Xcomp</strong>:完全采用即时编译器模式执行程序，如果编译出现问题，解释器会介入</li>
+<li><strong>-Xmixed</strong>:采用解释器+即时编译器混合模式执行程序</li>
+</ul>
+<h4 id="Hotspot-VM-中JIT分类"><a href="#Hotspot-VM-中JIT分类" class="headerlink" title="Hotspot VM 中JIT分类"></a>Hotspot VM 中JIT分类</h4><ul>
+<li>在Hotspot VM 内嵌两个JIT编译器，分别为 Client &#x2F; Server Compiler 但是大多数情况下我们称之为 C1编译器和C2编译器，可以设置使用哪一种编译器</li>
+<li>-client 使用c1编译器<ul>
+<li>C1编译器会对字节码进行 <strong>简单和可靠的优化，耗时短</strong> 以达到更快的编译速度</li>
+</ul>
+</li>
+<li>-server 使用c2 编译器<ul>
+<li>C2进行 <strong>耗时较长的优化，以及激进优化</strong> 但是优化的代码执行效率高</li>
+</ul>
+</li>
+</ul>
+<p><strong>C1和C2编译器不同的优化策略</strong></p>
+<ul>
+<li>在不同的编译器上有不同的优化策略，</li>
+<li>C1编译器有方法内联，去虚拟化、冗余消除<ul>
+<li>方法内联：将引用的函数代码编译道引用点处，这样就可减少栈帧的生成，减少参数的传递和跳转过程</li>
+<li>去虚拟化：对唯一的实现类进行内联</li>
+<li>冗余消除：在运行期间会把一些不会执行的代码折叠掉</li>
+</ul>
+</li>
+<li>C2的优化主要是在全局层面，逃逸分析师优化的基础，基于逃逸分析在C2上有如下几种优化<ul>
+<li>标量替换：用标量替换聚合变量</li>
+<li>栈上分配：对于为逃逸的对象分配对象的在栈而不是在堆</li>
+<li>同步消除：清除同步动作，通常指的是synchronized</li>
+</ul>
+</li>
+<li><strong>分层编译（Tiered Compiler）策略</strong><ul>
+<li>程序解释执行（不开启性能监控）可以触发C1，将字节码编译成机器码，可以进行简单优化，也可加上性能优化，C2编译会根据性能监控信息进行激进优化</li>
+<li>不过在Java7版本之后，一旦开发人员在程序中显示指定命令 “-server”时，默认开启，使用c1和c2共同执行</li>
+</ul>
+</li>
+</ul>
+<h4 id="Graal编译器与AOT编译器"><a href="#Graal编译器与AOT编译器" class="headerlink" title="Graal编译器与AOT编译器"></a>Graal编译器与AOT编译器</h4><p><strong>Graal编译器</strong></p>
+<ul>
+<li>在JDK10之后，Hotspot又加入了一个全新的即时编译器：Graal 编译器</li>
+<li>编译效果短短几年就追平了C2编译器</li>
+<li>目前还在实验阶段<ul>
+<li>-XX:+UnlockExperimentalVMOptions -XX:+UseJVMCICompiler去激活才能使用</li>
+</ul>
+</li>
+</ul>
+<p><strong>AOT编译器</strong></p>
+<ul>
+<li>JDK9.0 之后加入了AOT编译器（静态提前编译器 Ahead Of Time Compiler）</li>
+<li>JDK9 引入了实验性的 AOT 编译工具 jaotc ，它借助了 Graal 编译器。将所输入的Java类文件转换为机器码，并存放道生成的动态共享库中</li>
+<li>所谓的AOT编译器 时与即时编译器对立的一个概念，<strong>即时编译器在程序运行的时候</strong>，而<strong>AOT编译器是在程序运行之前</strong></li>
+<li>最大好处：可以直接执行，不必等程序预热，减少第一次运行慢的体验</li>
+<li>缺点：<ul>
+<li>破坏了 Java”一次编译，到处运行“，因为直接编译之后的文件是固定的，必须为每种系统都编译</li>
+<li><strong>降低了Java动态链接的动态性</strong>，加载的代码在编译器期就必须全部已知</li>
+<li>还需要继续优化中，最初只支持Linux x64 java base</li>
+</ul>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Bottle</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://bottlespace.github.io/2017/11/02/java/jvm/JVM-009-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/">https://bottlespace.github.io/2017/11/02/java/jvm/JVM-009-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://bottlespace.github.io" target="_blank">Bottle Space</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/bottlespace.github.io/tags/JVM/">JVM</a></div><div class="post_share"><div class="social-share" data-image="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-007-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E4%B8%8E%E8%AE%BF%E9%97%AE%E5%AE%9A%E4%BD%8D/"><img class="prev-cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" onerror="onerror=null;src='/bottlespace.github.io/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">JVM-007-对象实例化内存布局与访问定位</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-003-%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88/" title="JVM-003-虚拟机栈"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-003-虚拟机栈</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-000-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%AD%90%E7%B3%BB%E7%BB%9F/" title="JVM-000-类加载子系统"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-000-类加载子系统</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-001-%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8%EF%BC%88PC%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%89/" title="JVM-001-程序计数器（PC寄存器）"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-001-程序计数器（PC寄存器）</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-002-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95/" title="JVM-002-本地方法"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-002-本地方法</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-005-%E5%A0%86/" title="JVM-005-堆"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-005-堆</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-004-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%8E%A5%E5%8F%A3/" title="JVM-004-本地方法接口"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-004-本地方法接口</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/bottlespace.github.io/img/favicon.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Bottle</div><div class="author-info__description">Bottle</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/bottlespace.github.io/archives/"><div class="headline">文章</div><div class="length-num">31</div></a></div><div class="card-info-data-item"><a href="/bottlespace.github.io/tags/"><div class="headline">标签</div><div class="length-num">13</div></a></div><div class="card-info-data-item"><a href="/bottlespace.github.io/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/bottlespace"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">执行引擎概述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">执行引擎的工作流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Java%E4%BB%A3%E7%A0%81%E7%BC%96%E8%AF%91%E5%92%8C%E6%89%A7%E8%A1%8C%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">Java代码编译和执行的过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%BA%E5%99%A8%E7%A0%81%E6%8C%87%E4%BB%A4%E3%80%81%E6%B1%87%E7%BC%96%E3%80%81%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">机器码指令、汇编、高级语言的理解与执行过程</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9C%BA%E5%99%A8%E7%A0%81"><span class="toc-number">4.1.</span> <span class="toc-text">机器码</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4"><span class="toc-number">4.2.</span> <span class="toc-text">指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4%E9%9B%86"><span class="toc-number">4.3.</span> <span class="toc-text">指令集</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80"><span class="toc-number">4.4.</span> <span class="toc-text">汇编语言</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80"><span class="toc-number">4.5.</span> <span class="toc-text">高级语言</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81"><span class="toc-number">4.6.</span> <span class="toc-text">字节码</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#C-x2F-C-%E6%BA%90%E7%A8%8B%E5%BA%8F%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="toc-number">4.7.</span> <span class="toc-text">C&#x2F;C++源程序执行过程</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E9%87%8A%E5%99%A8"><span class="toc-number">5.</span> <span class="toc-text">解释器</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A7%A3%E9%87%8A%E5%99%A8%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%EF%BC%88%E6%88%96%E5%B7%A5%E4%BD%9C%E4%BB%BB%E5%8A%A1%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">解释器工作机制（或工作任务）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A7%A3%E9%87%8A%E5%99%A8%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-number">5.2.</span> <span class="toc-text">解释器的分类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%8E%B0%E7%8A%B6"><span class="toc-number">5.3.</span> <span class="toc-text">现状</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#JIT%E7%BC%96%E8%AF%91%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">JIT编译器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%83%AD%E7%82%B9%E4%BB%A3%E7%A0%81%E4%BB%A5%E5%8F%8A%E6%8E%A2%E6%B5%8B%E6%96%B9%E5%BC%8F"><span class="toc-number">7.</span> <span class="toc-text">热点代码以及探测方式</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-number">7.1.</span> <span class="toc-text">方法调用计数器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%9B%9E%E8%BE%B9%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-number">7.2.</span> <span class="toc-text">回边计数器</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hotspot-VM-%E5%8F%AF%E4%BB%A5%E8%AE%BE%E7%BD%AE%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%89%A7%E8%A1%8C%E6%96%B9%E5%BC%8F"><span class="toc-number">8.</span> <span class="toc-text">Hotspot VM 可以设置程序的执行方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Hotspot-VM-%E4%B8%ADJIT%E5%88%86%E7%B1%BB"><span class="toc-number">9.</span> <span class="toc-text">Hotspot VM 中JIT分类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Graal%E7%BC%96%E8%AF%91%E5%99%A8%E4%B8%8EAOT%E7%BC%96%E8%AF%91%E5%99%A8"><span class="toc-number">10.</span> <span class="toc-text">Graal编译器与AOT编译器</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2021/10/20/security/%E5%9B%BD%E5%AF%86/%E5%9B%BD%E5%AF%86%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B/" title="国密算法简介"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220418223909445.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="国密算法简介"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2021/10/20/security/%E5%9B%BD%E5%AF%86/%E5%9B%BD%E5%AF%86%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B/" title="国密算法简介">国密算法简介</a><time datetime="2021-10-20T12:21:32.000Z" title="发表于 2021-10-20 20:21:32">2021-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2021/10/20/network/protocol/ARP%E5%8D%8F%E8%AE%AE/" title="ARP协议"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs0ff41bd5ad6eddc43888e14137dbb6fd52663318.jpg" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="ARP协议"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2021/10/20/network/protocol/ARP%E5%8D%8F%E8%AE%AE/" title="ARP协议">ARP协议</a><time datetime="2021-10-20T12:21:32.000Z" title="发表于 2021-10-20 20:21:32">2021-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2021/10/20/ops/kvm/kvm%20%E6%93%8D%E4%BD%9C/" title="KVM操作"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgskvm.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="KVM操作"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2021/10/20/ops/kvm/kvm%20%E6%93%8D%E4%BD%9C/" title="KVM操作">KVM操作</a><time datetime="2021-10-20T12:21:32.000Z" title="发表于 2021-10-20 20:21:32">2021-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2020/08/06/network/Retrofit/" title="Retrofit"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="Retrofit"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2020/08/06/network/Retrofit/" title="Retrofit">Retrofit</a><time datetime="2020-08-06T13:31:58.000Z" title="发表于 2020-08-06 21:31:58">2020-08-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2020/05/20/network/%E8%B7%AF%E7%94%B1%E8%A1%A8/" title="路由表"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220418223801353.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="路由表"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2020/05/20/network/%E8%B7%AF%E7%94%B1%E8%A1%A8/" title="路由表">路由表</a><time datetime="2020-05-20T07:26:34.000Z" title="发表于 2020-05-20 15:26:34">2020-05-20</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By Bottle</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/bottlespace.github.io/js/utils.js"></script><script src="/bottlespace.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
