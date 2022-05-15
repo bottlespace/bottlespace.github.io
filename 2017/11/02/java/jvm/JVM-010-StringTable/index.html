@@ -1,0 +1,340 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-010-StringTable | Bottle Space</title><meta name="keywords" content="虚拟机栈"><meta name="author" content="Bottle"><meta name="copyright" content="Bottle"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="JVM-010-StringTable">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-010-StringTable">
+<meta property="og:url" content="https://bottlespace.github.io/2017/11/02/java/jvm/JVM-010-StringTable/index.html">
+<meta property="og:site_name" content="Bottle Space">
+<meta property="og:description" content="JVM-010-StringTable">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png">
+<meta property="article:published_time" content="2017-11-02T13:31:58.000Z">
+<meta property="article:modified_time" content="2022-05-15T14:33:25.233Z">
+<meta property="article:author" content="Bottle">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png"><link rel="shortcut icon" href="/bottlespace.github.io/img/favicon.png"><link rel="canonical" href="https://bottlespace.github.io/2017/11/02/java/jvm/JVM-010-StringTable/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/bottlespace.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/bottlespace.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JVM-010-StringTable',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-05-15 22:33:25'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/bottlespace.github.io/img/favicon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/bottlespace.github.io/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/bottlespace.github.io/tags/"><div class="headline">标签</div><div class="length-num">13</div></a></div><div class="data-item"><a href="/bottlespace.github.io/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/bottlespace.github.io/">Bottle Space</a></span><div id="menus"><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM-010-StringTable</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2017-11-02T13:31:58.000Z" title="发表于 2017-11-02 21:31:58">2017-11-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-05-15T14:33:25.233Z" title="更新于 2022-05-15 22:33:25">2022-05-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/bottlespace.github.io/categories/JVM/">JVM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM-010-StringTable"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="010-StringTable"><a href="#010-StringTable" class="headerlink" title="010-StringTable"></a>010-StringTable</h1><h4 id="String的基本特性"><a href="#String的基本特性" class="headerlink" title="String的基本特性"></a>String的基本特性</h4><ul>
+<li>String：字符串，使用一对 “” 引起来表示<ul>
+<li>String s1 &#x3D; “hello”;</li>
+<li>String s2 &#x3D; new String(“hello”);</li>
+</ul>
+</li>
+<li>String：声明为final的，不可被继承</li>
+<li>String 实现了Serializable接口：表示字符串是支持序列化的，实现了Comparable接口：表示String可以比较大小</li>
+<li>在JDK8以及之前，String内部定义了<strong>final char[] value</strong> 用来存储字符串数据，JDK9之后使用 <strong>byte[]</strong></li>
+<li>String：代表不可变的字符序列。简称：不可变性<ul>
+<li>当对字符串重新赋值的时候，需要重写指定内存区域赋值，而不是修改原有的value进行赋值</li>
+<li>不能对现有的字符串进行连接操作，也需要重新指定内存区域，不是修改原有的value进行赋值</li>
+<li>当调用String的replace()方法修改指定字符或者字符串的时候，也需要重新指定内存区域赋值，不能使用原有的value赋值</li>
+</ul>
+</li>
+<li>通过字面量的方式（区别于new）给一个字符串赋值，此时的字符串声明在常量池中</li>
+<li><strong>字符串常量池中是不会存储相同内容的字符串的</strong></li>
+<li>String的String Pool 是一个固定大小的HashTable 默认长度为1009，如果放进去String Pool 的String非常多，就会造成Hash冲突严重，从而导致链表很长，而链表长了之后，会直接影响调用 String.intern()的性能</li>
+<li>使用 <strong>-XX:StringTableSize</strong> 可设置StringTable的长度</li>
+<li>在JDK6中的StringTable是固定的，就是1009的长度，如果字符串常量池中的字符串过多就会导致效率下降很快，StirngTableSize设置没有要求</li>
+<li>在JDK7中，StringTable的默认长度为 60013，JDK7没有要求</li>
+<li>JDK8开始1009 是可设置的最小值</li>
+<li>Stirng#intern()方法：如果字符串常量池中没有对应的字符串的话，就添加在常量池</li>
+</ul>
+<h4 id="String的内存分配"><a href="#String的内存分配" class="headerlink" title="String的内存分配"></a>String的内存分配</h4><ul>
+<li>在Java语言中有8种基本数据类型和String，这些类型为了使它们在运行速度中更快，更节省内存。都提供了常量池</li>
+<li>常量池就相似于一个Java系统级别提供的缓存。8中基本类型都是系统协调的，<strong>String类型的常量池比较特殊，主要的使用方法有2种</strong><ul>
+<li>直接使用双引号声明String的对象会直接存储在常量池种</li>
+<li>如果不是使用双引号声明的String对象，可以使用String提供的intern() 方法</li>
+</ul>
+</li>
+<li>在JDK6以及以前，字符串常量池存放在永久代</li>
+<li>JDK7种Oracle对字符串池的逻辑做了很大的改变，将 <strong>字符串常量池的位置调整到Java堆内</strong><ul>
+<li>所有的字符串都保存在堆中，和其他普通对象一样，这样可以让你在进行调优的时候仅仅需要调整堆大小就可以了</li>
+<li>字符串常量池的概念原本使用的比较多，但是这个改动使得我们有足够的理由考虑使用String.intern();</li>
+</ul>
+</li>
+<li>Java8元空间，字符串常量在堆</li>
+<li><strong>StringTable为什么需要调整</strong><ul>
+<li>之前的永久代比较小，放大量的字符串，会占用很大的空间</li>
+<li>永久代垃圾回收的频率很低</li>
+</ul>
+</li>
+<li>Java语言规范要求完全相同的字符字面常量，应该包含同样的Unicode字符序列，并且必须是指向同一个String类实例</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class Memory &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        int i = 1;</span><br><span class="line">        Object obj = new Object();</span><br><span class="line">        Memory mem = new Memory();</span><br><span class="line">        mem.foo(obj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void foo(Object param) &#123;</span><br><span class="line">        String str = param.toString();</span><br><span class="line">        System.out.println(str);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598227072959.png" alt="1598227072959"></p>
+<h4 id="字符串的拼接操作"><a href="#字符串的拼接操作" class="headerlink" title="字符串的拼接操作"></a>字符串的拼接操作</h4><ul>
+<li><strong>常量与常量</strong>的拼接结果在常量池，原理是编译期优化</li>
+<li>常量池中不会存在相同内容的常量</li>
+<li><strong>只要其中有一个是变量，结果就在堆中</strong>。变量拼接的原理是StringBuilder</li>
+<li>如果拼接的结果调用intern()方法，则主动将常量池中还没有的字符串对象放入池中，并返回此对象的地址</li>
+</ul>
+<h4 id="拼接操作的原理"><a href="#拼接操作的原理" class="headerlink" title="拼接操作的原理"></a>拼接操作的原理</h4><ul>
+<li>实例代码</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class CreateStringDemo &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String str = &quot;hello &quot;;</span><br><span class="line">        String str2 = &quot;world&quot;;</span><br><span class="line">        String s = str + str2;</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>javap 反编译之后的字节码</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> 0 ldc #2 &lt;hello &gt;</span><br><span class="line"> 2 astore_1</span><br><span class="line"> 3 ldc #3 &lt;world&gt;</span><br><span class="line"> 5 astore_2</span><br><span class="line"> 6 new #4 &lt;java/lang/StringBuilder&gt;</span><br><span class="line"> 9 dup</span><br><span class="line">10 invokespecial #5 &lt;java/lang/StringBuilder.&lt;init&gt;&gt;</span><br><span class="line">13 aload_1</span><br><span class="line">14 invokevirtual #6 &lt;java/lang/StringBuilder.append&gt;</span><br><span class="line">17 aload_2</span><br><span class="line">18 invokevirtual #6 &lt;java/lang/StringBuilder.append&gt;</span><br><span class="line">21 invokevirtual #7 &lt;java/lang/StringBuilder.toString&gt;</span><br><span class="line">24 astore_3</span><br><span class="line">25 getstatic #8 &lt;java/lang/System.out&gt;</span><br><span class="line">28 aload_3</span><br><span class="line">29 invokevirtual #9 &lt;java/io/PrintStream.println&gt;</span><br><span class="line">32 return</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>String拼接的原理</p>
+<p>：只要是变量，就先创建一个StringBuilder对象，然后调用StringBuilder的append()方法，分别拼接两个字符串，拼接结束之后，调用StringBuilder的toString()方法，返回为新的字符串</p>
+<ul>
+<li>在JDK5.0之前使用的是StringBuffer进行拼接，在JDK5.0之后，StringBuilder出现，然后使用了StringBuilder来拼接</li>
+</ul>
+</li>
+<li><p>拼接的实际操作如下</p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">StringBuilder sb = new StringBuilder();</span><br><span class="line">sb.append(&quot;hello &quot;);</span><br><span class="line">sb.append(&quot;world&quot;);</span><br><span class="line">sb.toString(); // 类似于 new String(&quot;hello world&quot;);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>字符串拼接操作，不一定是使用的是StringBuilder，如果两边都是final的字符串常量或者常量引用，仍然使用编译器优化，此时不使用StringBuilder的方式</li>
+<li>针对final修饰类、方法、基本数据类型、引用数据类型的量的结果的时候，能使用fianl就使用final</li>
+<li>在使用StringBuilder和StringBuffer的时候，如果已知具体的大小，可以进行有参构造函数，创建一个指定初始大小的数组，可以避免返回扩容转移数组，耗费空间和资源</li>
+</ul>
+<h4 id="intern-的使用"><a href="#intern-的使用" class="headerlink" title="intern() 的使用"></a>intern() 的使用</h4><ul>
+<li>如果不是双引号声明的String对象，可以使用String提供的intern方法：intern方法会从字符串常量池中查询当前字符串是否存在，若不存在，就会将当前字符串放入常量池中<ul>
+<li>String myInfo &#x3D; new String(“icanci.cn”).intern();</li>
+</ul>
+</li>
+<li>也就是说，如果在任意字符串上调用String#intern方法，那么其返回结果所指向的哪个类实例，必须和直接以常量形式出现的字符串实例完全相同。因此，下列表达式的值必为true<ul>
+<li>(“a”+”b”+”c”).intern() &#x3D;&#x3D; “abc”</li>
+</ul>
+</li>
+<li>通俗点讲，Interned String 就是确保字符串在内存中只有一份拷贝，这样可以节约内存空间，加快字符串操作任务的执行速度。注意：这个值会被存放在字符串内部池（String Intern Pool）</li>
+<li>只要字符串对象调用了 intern() 方法，那么返回值是指向字符串常量池中的数据</li>
+<li>实例代码</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class StringInternDemo &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String s = new String(&quot;1&quot;);</span><br><span class="line">        s.intern();</span><br><span class="line">        String s2 = new String(&quot;1&quot;);</span><br><span class="line">        System.out.println(s == s2);</span><br><span class="line">        String s3 = new String(&quot;1&quot;) + new String(&quot;2&quot;);</span><br><span class="line">        s3.intern();</span><br><span class="line">        String s4 = &quot;11&quot;;</span><br><span class="line">        System.out.println(s3 == s4);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 打印结果</span><br><span class="line">// false</span><br><span class="line">// false</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>题目</strong></li>
+<li>new String(“ab”) 会创建几个对象？</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class StringNewDemo &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String ab = new String(&quot;ab&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> 0 new #2 &lt;java/lang/String&gt;</span><br><span class="line"> 3 dup</span><br><span class="line"> 4 ldc #3 &lt;ab&gt;</span><br><span class="line"> 6 invokespecial #4 &lt;java/lang/String.&lt;init&gt;&gt;</span><br><span class="line"> 9 astore_1</span><br><span class="line">10 return</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>从上面反编译看出，创建了两个对象，一个放在堆中，一个放在了字符串常量池 ldc指令</li>
+<li>如果之前常量池是有的，就字符串的值就直接引用到此常量</li>
+<li>new String(“a”) + new String(“b”) 创建了几个对象</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class StringNewDemo &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String ab = new String(&quot;b&quot;) + new String(&quot;b&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> 0 new #2 &lt;java/lang/StringBuilder&gt;</span><br><span class="line"> 3 dup</span><br><span class="line"> 4 invokespecial #3 &lt;java/lang/StringBuilder.&lt;init&gt;&gt;</span><br><span class="line"> 7 new #4 &lt;java/lang/String&gt;</span><br><span class="line">10 dup</span><br><span class="line">11 ldc #5 &lt;b&gt;</span><br><span class="line">13 invokespecial #6 &lt;java/lang/String.&lt;init&gt;&gt;</span><br><span class="line">16 invokevirtual #7 &lt;java/lang/StringBuilder.append&gt;</span><br><span class="line">19 new #4 &lt;java/lang/String&gt;</span><br><span class="line">22 dup</span><br><span class="line">23 ldc #5 &lt;b&gt;</span><br><span class="line">25 invokespecial #6 &lt;java/lang/String.&lt;init&gt;&gt;</span><br><span class="line">28 invokevirtual #7 &lt;java/lang/StringBuilder.append&gt;</span><br><span class="line">31 invokevirtual #8 &lt;java/lang/StringBuilder.toString&gt;</span><br><span class="line">34 astore_1</span><br><span class="line">35 return</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>创建了哪些对象<ul>
+<li>new StringBuilder()</li>
+<li>new String(“a”)</li>
+<li>常量池中的 “a”</li>
+<li>new String(“b”)</li>
+<li>常量池中的 “b”</li>
+</ul>
+</li>
+<li>深入刨析StringBuilderd的toString()方法<ul>
+<li>对象 new String(“ab”)</li>
+<li><strong>注意：toString()方法的调用，在字符串常量池中没有生成 “ab”</strong></li>
+</ul>
+</li>
+<li>实例代码</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class StringInternDemo &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        String s = new String(&quot;1&quot;);</span><br><span class="line">        // 调用此方法之前，字符串常量池已经有了 &quot;1&quot;</span><br><span class="line">        s.intern();</span><br><span class="line">        // 此时 s 指的是堆空间的地址</span><br><span class="line">        // 此时 s2 指向的是常量池中的地址</span><br><span class="line">        String s2 = &quot;1&quot;;</span><br><span class="line">        // JDK6：false</span><br><span class="line">        // JDK7/8：false</span><br><span class="line">        System.out.println(s == s2);</span><br><span class="line">        // 因为 new String(&quot;1&quot;) + new String(&quot;1&quot;); 这个过程没有把&quot;11&quot;放在常量池</span><br><span class="line">        // 此时 s3 的地址就是相当于 new String(&quot;11&quot;); 字符串常量池没有&quot;11&quot;</span><br><span class="line">        String s3 = new String(&quot;1&quot;) + new String(&quot;1&quot;);</span><br><span class="line">        // 在字符串常量池生成&quot;11&quot;</span><br><span class="line">        // 这个&quot;11&quot;如何理解</span><br><span class="line">        // 在JDK6中就是创建了一个新的对象</span><br><span class="line">        // 在JDK7中，调用 s3.intern(),字符串常量池中 &quot;11&quot;的值就是创建对象的地址</span><br><span class="line">        s3.intern();</span><br><span class="line">        // 使用的是上一行代码执行时，在常量池中生成的&quot;11&quot; 的地址</span><br><span class="line">        String s4 = &quot;11&quot;;</span><br><span class="line">        // JDK6：false</span><br><span class="line">        // JDK7/8：true</span><br><span class="line">        System.out.println(s3 == s4);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>反编译</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"> 0 new #2 &lt;java/lang/String&gt;</span><br><span class="line"> 3 dup</span><br><span class="line"> 4 ldc #3 &lt;1&gt;</span><br><span class="line"> 6 invokespecial #4 &lt;java/lang/String.&lt;init&gt;&gt;</span><br><span class="line"> 9 astore_1</span><br><span class="line">10 aload_1</span><br><span class="line">11 invokevirtual #5 &lt;java/lang/String.intern&gt;</span><br><span class="line">14 pop</span><br><span class="line">15 ldc #3 &lt;1&gt;</span><br><span class="line">17 astore_2</span><br><span class="line">18 getstatic #6 &lt;java/lang/System.out&gt;</span><br><span class="line">21 aload_1</span><br><span class="line">22 aload_2</span><br><span class="line">23 if_acmpne 30 (+7)</span><br><span class="line">26 iconst_1</span><br><span class="line">27 goto 31 (+4)</span><br><span class="line">30 iconst_0</span><br><span class="line">31 invokevirtual #7 &lt;java/io/PrintStream.println&gt;</span><br><span class="line">34 new #8 &lt;java/lang/StringBuilder&gt;</span><br><span class="line">37 dup</span><br><span class="line">38 invokespecial #9 &lt;java/lang/StringBuilder.&lt;init&gt;&gt;</span><br><span class="line">41 new #2 &lt;java/lang/String&gt;</span><br><span class="line">44 dup</span><br><span class="line">45 ldc #3 &lt;1&gt;</span><br><span class="line">47 invokespecial #4 &lt;java/lang/String.&lt;init&gt;&gt;</span><br><span class="line">50 invokevirtual #10 &lt;java/lang/StringBuilder.append&gt;</span><br><span class="line">53 new #2 &lt;java/lang/String&gt;</span><br><span class="line">56 dup</span><br><span class="line">57 ldc #3 &lt;1&gt;</span><br><span class="line">59 invokespecial #4 &lt;java/lang/String.&lt;init&gt;&gt;</span><br><span class="line">62 invokevirtual #10 &lt;java/lang/StringBuilder.append&gt;</span><br><span class="line">65 invokevirtual #11 &lt;java/lang/StringBuilder.toString&gt;</span><br><span class="line">68 astore_3</span><br><span class="line">69 aload_3</span><br><span class="line">70 invokevirtual #5 &lt;java/lang/String.intern&gt;</span><br><span class="line">73 pop</span><br><span class="line">74 ldc #12 &lt;11&gt;</span><br><span class="line">76 astore 4</span><br><span class="line">78 getstatic #6 &lt;java/lang/System.out&gt;</span><br><span class="line">81 aload_3</span><br><span class="line">82 aload 4</span><br><span class="line">84 if_acmpne 91 (+7)</span><br><span class="line">87 iconst_1</span><br><span class="line">88 goto 92 (+4)</span><br><span class="line">91 iconst_0</span><br><span class="line">92 invokevirtual #7 &lt;java/io/PrintStream.println&gt;</span><br><span class="line">95 return</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598234049951.png" alt="1598234049951"></p>
+<ul>
+<li>练习</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class StringInternDemo2 &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        // 拓展</span><br><span class="line">        // 执行完之后，字符串常量池不存在 &quot;11&quot; </span><br><span class="line">        String s3 = new String(&quot;1&quot;) + new String(&quot;1&quot;);</span><br><span class="line">        // 在字符串常量池生成 &quot;11&quot;</span><br><span class="line">        String s4 = &quot;11&quot;;</span><br><span class="line">        String s5 = s3.intern();</span><br><span class="line">        System.out.println(s3 == s4);</span><br><span class="line">        System.out.println(s4 == s5);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// 打印</span><br><span class="line">// false</span><br><span class="line">// true</span><br></pre></td></tr></table></figure>
+
+<p><strong>总结</strong></p>
+<ul>
+<li>jdk6中，将这个字符串对象尝试放入串池<ul>
+<li>如果串池中有，则不会放入，返回已有的串池中的对象的地址</li>
+<li>如果没有，<strong>会把此对象复制一份</strong>，放入串池，并返回串池中的对象地址</li>
+</ul>
+</li>
+<li>jdk7中，将这个字符串对象尝试放入串池<ul>
+<li>如果串池中有，则并不会放入。返回已有的串池中的对象的地址</li>
+<li>如果没有，<strong>会把此对象的引用地址复制一份</strong>，放入串池，并返回串池中引用地址地址</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598235238203-20220515223302996.png" alt="1598235238203"></p>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598235359232.png" alt="1598235359232"></p>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598235462671-20220515223311943.png" alt="1598235462671"></p>
+<h4 id="intern-的空间效率测试：空间角度"><a href="#intern-的空间效率测试：空间角度" class="headerlink" title="intern()的空间效率测试：空间角度"></a>intern()的空间效率测试：空间角度</h4><ul>
+<li>实例代码</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> */</span><br><span class="line">public class StringIntern &#123;</span><br><span class="line">    static final int MAX_COUNT = 1000 * 10000;</span><br><span class="line">    static final String[] arr = new String[MAX_COUNT];</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Integer[] data = &#123;1, 2, 3, 4, 5, 6, 7, 8, 9, 1&#125;;</span><br><span class="line">        long start = System.currentTimeMillis();</span><br><span class="line">        for (int i = 0; i &lt; MAX_COUNT; i++) &#123;</span><br><span class="line">            // 花费的时间：2815 ms String 实例 1000W</span><br><span class="line">            // arr[i] = new String(String.valueOf(data[i % data.length]));</span><br><span class="line">            // 花费的时间：1304 ms</span><br><span class="line">            arr[i] = new String(String.valueOf(data[i % data.length])).intern();</span><br><span class="line">        &#125;</span><br><span class="line">        long end = System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;花费的时间：&quot; + (end - start) + &quot; ms&quot;);</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(1000000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598236079672.png" alt="1598236079672"></p>
+<p><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs1598236167631-20220515223317962.png" alt="1598236167631"></p>
+<ul>
+<li>对于程序中大量的重复的字符串，可以使用intern() 方法节省空间</li>
+<li>大的社交网站，需要内存中存储大量的字符串。如果都调用 intern() 方法，就会明显降低内存的大小</li>
+</ul>
+<h4 id="StringTable的垃圾回收"><a href="#StringTable的垃圾回收" class="headerlink" title="StringTable的垃圾回收"></a>StringTable的垃圾回收</h4><ul>
+<li>实例代码</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> *</span><br><span class="line"> * VM: -Xms15m -Xmx15m -XX:+PrintStringTableStatistics -XX:+PrintGCDetails</span><br><span class="line"> */</span><br><span class="line">public class StringGCTest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        for (int i = 0; i &lt; 100; i++) &#123;</span><br><span class="line">            String.valueOf(i).intern();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>控制台结果</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">Heap</span><br><span class="line"> PSYoungGen      total 4608K, used 2079K [0x00000000ffb00000, 0x0000000100000000, 0x0000000100000000)</span><br><span class="line">  eden space 4096K, 50% used [0x00000000ffb00000,0x00000000ffd07f58,0x00000000fff00000)</span><br><span class="line">  from space 512K, 0% used [0x00000000fff80000,0x00000000fff80000,0x0000000100000000)</span><br><span class="line">  to   space 512K, 0% used [0x00000000fff00000,0x00000000fff00000,0x00000000fff80000)</span><br><span class="line"> ParOldGen       total 11264K, used 0K [0x00000000ff000000, 0x00000000ffb00000, 0x00000000ffb00000)</span><br><span class="line">  object space 11264K, 0% used [0x00000000ff000000,0x00000000ff000000,0x00000000ffb00000)</span><br><span class="line"> Metaspace       used 3494K, capacity 4498K, committed 4864K, reserved 1056768K</span><br><span class="line">  class space    used 387K, capacity 390K, committed 512K, reserved 1048576K</span><br><span class="line">SymbolTable statistics:</span><br><span class="line">Number of buckets       :     20011 =    160088 bytes, avg   8.000</span><br><span class="line">Number of entries       :     14191 =    340584 bytes, avg  24.000</span><br><span class="line">Number of literals      :     14191 =    604960 bytes, avg  42.630</span><br><span class="line">Total footprint         :           =   1105632 bytes</span><br><span class="line">Average bucket size     :     0.709</span><br><span class="line">Variance of bucket size :     0.713</span><br><span class="line">Std. dev. of bucket size:     0.844</span><br><span class="line">Maximum bucket size     :         6</span><br><span class="line">StringTable statistics:</span><br><span class="line">Number of buckets       :     60013 =    480104 bytes, avg   8.000</span><br><span class="line">Number of entries       :      1876 =     45024 bytes, avg  24.000</span><br><span class="line">Number of literals      :      1876 =    163400 bytes, avg  87.100</span><br><span class="line">Total footprint         :           =    688528 bytes</span><br><span class="line">Average bucket size     :     0.031</span><br><span class="line">Variance of bucket size :     0.031</span><br><span class="line">Std. dev. of bucket size:     0.177</span><br><span class="line">Maximum bucket size     :         2</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>上述的情况没有发生GC</li>
+<li>实例代码 增大数据量</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">package cn.icanci.jvm.string;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Author: icanci</span><br><span class="line"> *</span><br><span class="line"> * VM: -Xms15m -Xmx15m -XX:+PrintStringTableStatistics -XX:+PrintGCDetails</span><br><span class="line"> */</span><br><span class="line">public class StringGCTest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        for (int i = 0; i &lt; 100000; i++) &#123;</span><br><span class="line">            String.valueOf(i).intern();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>执行结果</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">[GC (Allocation Failure) [PSYoungGen: 4096K-&gt;488K(4608K)] 4096K-&gt;696K(15872K), 0.0063979 secs] [Times: user=0.00 sys=0.00, real=0.01 secs] </span><br><span class="line">Heap</span><br><span class="line"> PSYoungGen      total 4608K, used 3802K [0x00000000ffb00000, 0x0000000100000000, 0x0000000100000000)</span><br><span class="line">  eden space 4096K, 80% used [0x00000000ffb00000,0x00000000ffe3c950,0x00000000fff00000)</span><br><span class="line">  from space 512K, 95% used [0x00000000fff00000,0x00000000fff7a020,0x00000000fff80000)</span><br><span class="line">  to   space 512K, 0% used [0x00000000fff80000,0x00000000fff80000,0x0000000100000000)</span><br><span class="line"> ParOldGen       total 11264K, used 208K [0x00000000ff000000, 0x00000000ffb00000, 0x00000000ffb00000)</span><br><span class="line">  object space 11264K, 1% used [0x00000000ff000000,0x00000000ff034000,0x00000000ffb00000)</span><br><span class="line"> Metaspace       used 3497K, capacity 4498K, committed 4864K, reserved 1056768K</span><br><span class="line">  class space    used 387K, capacity 390K, committed 512K, reserved 1048576K</span><br><span class="line">SymbolTable statistics:</span><br><span class="line">Number of buckets       :     20011 =    160088 bytes, avg   8.000</span><br><span class="line">Number of entries       :     14191 =    340584 bytes, avg  24.000</span><br><span class="line">Number of literals      :     14191 =    604960 bytes, avg  42.630</span><br><span class="line">Total footprint         :           =   1105632 bytes</span><br><span class="line">Average bucket size     :     0.709</span><br><span class="line">Variance of bucket size :     0.713</span><br><span class="line">Std. dev. of bucket size:     0.844</span><br><span class="line">Maximum bucket size     :         6</span><br><span class="line">StringTable statistics:</span><br><span class="line">Number of buckets       :     60013 =    480104 bytes, avg   8.000</span><br><span class="line">Number of entries       :     61367 =   1472808 bytes, avg  24.000</span><br><span class="line">Number of literals      :     61367 =   3495800 bytes, avg  56.965</span><br><span class="line">Total footprint         :           =   5448712 bytes</span><br><span class="line">Average bucket size     :     1.023</span><br><span class="line">Variance of bucket size :     0.808</span><br><span class="line">Std. dev. of bucket size:     0.899</span><br><span class="line">Maximum bucket size     :         5</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+
+<h4 id="G1的String去重操作"><a href="#G1的String去重操作" class="headerlink" title="G1的String去重操作"></a>G1的String去重操作</h4><ul>
+<li>背景：对许多Java应用，（有大有小）做的测试结果得出以下结果<ul>
+<li>堆存活数据集合里面的String对象占用了25%</li>
+<li>堆存活数据集合里面重复的对象有13.5%</li>
+<li>String的平均长度时45</li>
+</ul>
+</li>
+<li>许多大规模的Java应用瓶颈在于内存，<strong>Java堆中存活的数据集合差不多25是String对象，但是有一半是重复的，浪费了空间，所以有了G1对String的去重操作</strong></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Bottle</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://bottlespace.github.io/2017/11/02/java/jvm/JVM-010-StringTable/">https://bottlespace.github.io/2017/11/02/java/jvm/JVM-010-StringTable/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://bottlespace.github.io" target="_blank">Bottle Space</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/bottlespace.github.io/tags/JVM/">JVM</a></div><div class="post_share"><div class="social-share" data-image="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-009-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/"><img class="prev-cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" onerror="onerror=null;src='/bottlespace.github.io/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">JVM-009-执行引擎</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-003-%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88/" title="JVM-003-虚拟机栈"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-003-虚拟机栈</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-000-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%AD%90%E7%B3%BB%E7%BB%9F/" title="JVM-000-类加载子系统"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-000-类加载子系统</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-001-%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8%EF%BC%88PC%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%89/" title="JVM-001-程序计数器（PC寄存器）"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-001-程序计数器（PC寄存器）</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-002-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95/" title="JVM-002-本地方法"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-002-本地方法</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-005-%E5%A0%86/" title="JVM-005-堆"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-005-堆</div></div></a></div><div><a href="/bottlespace.github.io/2017/11/02/java/jvm/JVM-004-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%8E%A5%E5%8F%A3/" title="JVM-004-本地方法接口"><img class="cover" src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220504160017106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2017-11-02</div><div class="title">JVM-004-本地方法接口</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/bottlespace.github.io/img/favicon.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Bottle</div><div class="author-info__description">Bottle</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/bottlespace.github.io/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="card-info-data-item"><a href="/bottlespace.github.io/tags/"><div class="headline">标签</div><div class="length-num">13</div></a></div><div class="card-info-data-item"><a href="/bottlespace.github.io/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/bottlespace"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#010-StringTable"><span class="toc-number">1.</span> <span class="toc-text">010-StringTable</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#String%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%89%B9%E6%80%A7"><span class="toc-number">1.0.0.1.</span> <span class="toc-text">String的基本特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#String%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="toc-number">1.0.0.2.</span> <span class="toc-text">String的内存分配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E6%8B%BC%E6%8E%A5%E6%93%8D%E4%BD%9C"><span class="toc-number">1.0.0.3.</span> <span class="toc-text">字符串的拼接操作</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8B%BC%E6%8E%A5%E6%93%8D%E4%BD%9C%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">1.0.0.4.</span> <span class="toc-text">拼接操作的原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#intern-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.0.0.5.</span> <span class="toc-text">intern() 的使用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#intern-%E7%9A%84%E7%A9%BA%E9%97%B4%E6%95%88%E7%8E%87%E6%B5%8B%E8%AF%95%EF%BC%9A%E7%A9%BA%E9%97%B4%E8%A7%92%E5%BA%A6"><span class="toc-number">1.0.0.6.</span> <span class="toc-text">intern()的空间效率测试：空间角度</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#StringTable%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-number">1.0.0.7.</span> <span class="toc-text">StringTable的垃圾回收</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#G1%E7%9A%84String%E5%8E%BB%E9%87%8D%E6%93%8D%E4%BD%9C"><span class="toc-number">1.0.0.8.</span> <span class="toc-text">G1的String去重操作</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2021/10/20/security/%E5%9B%BD%E5%AF%86/%E5%9B%BD%E5%AF%86%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B/" title="国密算法简介"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220418223909445.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="国密算法简介"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2021/10/20/security/%E5%9B%BD%E5%AF%86/%E5%9B%BD%E5%AF%86%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B/" title="国密算法简介">国密算法简介</a><time datetime="2021-10-20T12:21:32.000Z" title="发表于 2021-10-20 20:21:32">2021-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2021/10/20/network/protocol/ARP%E5%8D%8F%E8%AE%AE/" title="ARP协议"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgs0ff41bd5ad6eddc43888e14137dbb6fd52663318.jpg" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="ARP协议"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2021/10/20/network/protocol/ARP%E5%8D%8F%E8%AE%AE/" title="ARP协议">ARP协议</a><time datetime="2021-10-20T12:21:32.000Z" title="发表于 2021-10-20 20:21:32">2021-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2021/10/20/ops/kvm/kvm%20%E6%93%8D%E4%BD%9C/" title="KVM操作"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgskvm.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="KVM操作"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2021/10/20/ops/kvm/kvm%20%E6%93%8D%E4%BD%9C/" title="KVM操作">KVM操作</a><time datetime="2021-10-20T12:21:32.000Z" title="发表于 2021-10-20 20:21:32">2021-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2020/08/06/network/Retrofit/" title="Retrofit"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="Retrofit"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2020/08/06/network/Retrofit/" title="Retrofit">Retrofit</a><time datetime="2020-08-06T13:31:58.000Z" title="发表于 2020-08-06 21:31:58">2020-08-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/bottlespace.github.io/2020/05/20/network/%E8%B7%AF%E7%94%B1%E8%A1%A8/" title="路由表"><img src="https://blog.bottlespace.life/bottle-space-imgs/blog/imgsimage-20220418223801353.png" onerror="this.onerror=null;this.src='/bottlespace.github.io/img/404.jpg'" alt="路由表"/></a><div class="content"><a class="title" href="/bottlespace.github.io/2020/05/20/network/%E8%B7%AF%E7%94%B1%E8%A1%A8/" title="路由表">路由表</a><time datetime="2020-05-20T07:26:34.000Z" title="发表于 2020-05-20 15:26:34">2020-05-20</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By Bottle</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/bottlespace.github.io/js/utils.js"></script><script src="/bottlespace.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
